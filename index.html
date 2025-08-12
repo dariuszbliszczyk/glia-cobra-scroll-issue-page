@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%; overflow: hidden;">
+<head>
+  <meta charset="UTF-8">
+  <title>Body Scroll Example (Corrected)</title>
+</head>
+
+<body style="height: 100%; overflow: auto; margin: 0; font-family: sans-serif; line-height: 1.6;">
+
+  <div style="padding: 2em;">
+    <h1>Scroll Down to Check the Console</h1>
+    <p>This page has been corrected. It now correctly makes the <strong>&lt;body&gt;</strong> element the scroll container.</p>
+    <p>As you scroll, open the developer console (F12) to observe the values.</p>
+    <p>You will see that <code>document.body.scrollTop</code> changes, but <code>document.documentElement.scrollTop</code> remains <strong>0</strong>.</p>
+  </div>
+
+  <div style="height: 2500px; background-color: #f0f8ff; border-top: 2px dashed #007bff;">
+    <p style="padding-top: 100px; text-align: center; font-size: 2em; color: #007bff;">
+      This is a tall div to create scroll space.
+    </p>
+  </div>
+</body>
+</html>
