@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>JS Scroll Hijacking with Sticky Header/Footer</title>
+    <title>Test Case: Shadow DOM with Sticky Header/Footer</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
@@ -9,18 +9,18 @@
         html, body {
             height: 100%;
             margin: 0;
-            overflow: hidden; /* CRUCIAL: No scrollbars on the main page */
+            overflow: hidden; /* This prevents the main page from scrolling */
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
-        /* 1. The main container uses Flexbox to structure the page vertically */
+        /* 1. The main container uses Flexbox to structure the page */
         .page-container {
             display: flex;
             flex-direction: column;
             height: 100%;
         }
 
-        /* 2. The Header and Footer have fixed heights */
+        /* 2. The Header and Footer are fixed in size */
         .header, .footer {
             flex-shrink: 0;
             background-color: #003366;
@@ -30,85 +30,80 @@
             z-index: 10;
         }
 
-        /* 3. The content area fills the remaining space and hides any overflow */
+        /* 3. The content area fills the space but does NOT scroll itself */
         .content-area {
             flex-grow: 1;
-            overflow: hidden; /* CRUCIAL: No native scrollbar on this element either */
-            position: relative; /* Needed for positioning the wrapper inside */
-            background-color: #f0f2f5;
+            overflow: hidden; /* Its content (the web component) will handle scrolling internally */
         }
-
-        /* 4. This inner wrapper is the element that will be moved by JavaScript */
-        .content-wrapper {
-            position: absolute;
+        
+        /* 4. The custom element needs to fill the content area */
+        scroll-widget {
+            display: block;
+            height: 100%;
             width: 100%;
-            /* This transition creates a smooth "scrolling" effect */
-            transition: transform 0.1s ease-out;
-        }
-
-        .content-padding {
-            padding: 1.5rem;
-        }
-
-        .long-content-placeholder {
-            height: 2000px;
-            border: 3px dashed #cccccc;
-            border-radius: 8px;
         }
     </style>
 </head>
 <body>
 
     <div class="page-container">
+
         <header class="header">
             <h2>Sticky Header</h2>
         </header>
 
         <main class="content-area">
-            <div class="content-wrapper">
-                <div class="content-padding">
-                    <h3>This area "scrolls" using JavaScript.</h3>
-                    <p>Use your mouse wheel here. Notice there are no scrollbars. This is not a real scroll event.</p>
-                    <div class="long-content-placeholder"></div>
-                </div>
-            </div>
+            <scroll-widget></scroll-widget>
         </main>
 
         <footer class="footer">
             <p>Sticky Footer</p>
         </footer>
+
     </div>
 
     <script>
-        // --- THIS SCRIPT PERFORMS THE SCROLL HIJACKING ---
+        // --- This script defines the custom element that creates the Shadow DOM ---
 
-        const contentArea = document.querySelector('.content-area');
-        const contentWrapper = document.querySelector('.content-wrapper');
-        let currentY = 0; // Tracks the current vertical position
+        class ScrollWidget extends HTMLElement {
+            constructor() {
+                super();
 
-        // Listen for the 'wheel' event specifically on the middle content area
-        contentArea.addEventListener('wheel', (event) => {
-            // Prevent the default browser scroll action
-            event.preventDefault();
+                // 1. Create a shadow root. This isolates the component's internal DOM.
+                const shadow = this.attachShadow({ mode: 'open' });
 
-            // Update the vertical position based on how much the user scrolled the wheel
-            currentY -= event.deltaY;
+                // 2. Define the styles for the *internal* scrolling container.
+                const style = document.createElement('style');
+                style.textContent = `
+                    .wrapper {
+                        height: 100%;
+                        overflow-y: auto; /* This makes the div inside the shadow DOM scrollable */
+                        padding: 1.5rem;
+                        box-sizing: border-box;
+                    }
+                `;
 
-            // Calculate the boundaries to prevent scrolling past the content
-            const maxScroll = -(contentWrapper.offsetHeight - contentArea.clientHeight);
+                // 3. Create the internal elements.
+                const wrapper = document.createElement('div');
+                wrapper.setAttribute('class', 'wrapper');
 
-            // Clamp the value so it doesn't go beyond the top or bottom
-            if (currentY > 0) {
-                currentY = 0;
+                const content = document.createElement('div');
+                content.innerHTML = `
+                    <h3>This content is inside a Shadow DOM.</h3>
+                    <p>The scrollbar belongs to an element inside the component, not the main page.</p>
+                    <p>A scroll listener on the main 'document' will NOT detect scrolling that happens here.</p>
+                    <p>${'Lorem ipsum dolor sit amet, consectetur adipiscing elit. '.repeat(200)}</p>
+                `;
+
+                // 4. Attach the styles and elements to the shadow root.
+                shadow.appendChild(style);
+                shadow.appendChild(wrapper);
+                wrapper.appendChild(content);
             }
-            if (currentY < maxScroll) {
-                currentY = maxScroll;
-            }
+        }
 
-            // Apply the new position using a CSS transform. This creates the scrolling illusion.
-            contentWrapper.style.transform = `translateY(${currentY}px)`;
-
-        }, { passive: false }); // 'passive: false' is required for preventDefault() to work.
+        // 5. Register the new custom element so the <scroll-widget> tag works.
+        customElements.define('scroll-widget', ScrollWidget);
     </script>
 
 </body>
