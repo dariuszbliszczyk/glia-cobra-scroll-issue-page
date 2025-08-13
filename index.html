@@ -1,30 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Sticky Header/Footer with Scrollable Content</title>
+    <title>JS Scroll Hijacking with Sticky Header/Footer</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        /* Basic setup to make the page full-height and lock the main scrollbar */
+        /* Basic setup to lock the main page and prevent native scrollbars */
         html, body {
             height: 100%;
             margin: 0;
+            overflow: hidden; /* CRUCIAL: No scrollbars on the main page */
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            /* This is the crucial part that forces the scrollbar onto a child element */
-            overflow: hidden;
         }
 
-        /* 1. Create a full-height flex container */
+        /* 1. The main container uses Flexbox to structure the page vertically */
         .page-container {
             display: flex;
             flex-direction: column;
             height: 100%;
-            background-color: #f0f2f5;
         }
 
-        /* 2. Style the Header and Footer to be fixed in size */
+        /* 2. The Header and Footer have fixed heights */
         .header, .footer {
-            flex-shrink: 0; /* Prevents these from shrinking */
+            flex-shrink: 0;
             background-color: #003366;
             color: white;
             padding: 1rem;
@@ -32,23 +30,28 @@
             z-index: 10;
         }
 
-        .header {
-             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-
-        .footer {
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
-        }
-
-        /* 3. Make the main content area fill the remaining space and be scrollable */
+        /* 3. The content area fills the remaining space and hides any overflow */
         .content-area {
-            flex-grow: 1; /* Takes up all available vertical space */
-            overflow-y: auto; /* Makes ONLY this element scrollable */
+            flex-grow: 1;
+            overflow: hidden; /* CRUCIAL: No native scrollbar on this element either */
+            position: relative; /* Needed for positioning the wrapper inside */
+            background-color: #f0f2f5;
+        }
+
+        /* 4. This inner wrapper is the element that will be moved by JavaScript */
+        .content-wrapper {
+            position: absolute;
+            width: 100%;
+            /* This transition creates a smooth "scrolling" effect */
+            transition: transform 0.1s ease-out;
+        }
+
+        .content-padding {
             padding: 1.5rem;
         }
 
         .long-content-placeholder {
-            height: 2000px; /* Just to ensure the middle section is long enough to scroll */
+            height: 2000px;
             border: 3px dashed #cccccc;
             border-radius: 8px;
         }
@@ -57,22 +60,56 @@
 <body>
 
     <div class="page-container">
-
         <header class="header">
             <h2>Sticky Header</h2>
         </header>
 
         <main class="content-area">
-            <h3>This is the only scrollable area.</h3>
-            <p>The header above and the footer below will remain fixed in place while you scroll this middle section.</p>
-            <div class="long-content-placeholder"></div>
+            <div class="content-wrapper">
+                <div class="content-padding">
+                    <h3>This area "scrolls" using JavaScript.</h3>
+                    <p>Use your mouse wheel here. Notice there are no scrollbars. This is not a real scroll event.</p>
+                    <div class="long-content-placeholder"></div>
+                </div>
+            </div>
         </main>
 
         <footer class="footer">
             <p>Sticky Footer</p>
         </footer>
-
     </div>
+
+    <script>
+        // --- THIS SCRIPT PERFORMS THE SCROLL HIJACKING ---
+
+        const contentArea = document.querySelector('.content-area');
+        const contentWrapper = document.querySelector('.content-wrapper');
+        let currentY = 0; // Tracks the current vertical position
+
+        // Listen for the 'wheel' event specifically on the middle content area
+        contentArea.addEventListener('wheel', (event) => {
+            // Prevent the default browser scroll action
+            event.preventDefault();
+
+            // Update the vertical position based on how much the user scrolled the wheel
+            currentY -= event.deltaY;
+
+            // Calculate the boundaries to prevent scrolling past the content
+            const maxScroll = -(contentWrapper.offsetHeight - contentArea.clientHeight);
+
+            // Clamp the value so it doesn't go beyond the top or bottom
+            if (currentY > 0) {
+                currentY = 0;
+            }
+            if (currentY < maxScroll) {
+                currentY = maxScroll;
+            }
+
+            // Apply the new position using a CSS transform. This creates the scrolling illusion.
+            contentWrapper.style.transform = `translateY(${currentY}px)`;
+
+        }, { passive: false }); // 'passive: false' is required for preventDefault() to work.
+    </script>
 
 </body>
 </html>
