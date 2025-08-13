@@ -1,81 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <title>Sticky Header/Footer with Scrollable Content</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scrolling Container Issue</title>
     <style>
-        /* * KEY CHANGE 1: Lock the main document body.
-         * By setting overflow to hidden and height to 100%, we prevent the
-         * browser's main scrollbar from ever appearing. The page itself
-         * can no longer be scrolled.
-        */
+        /* Basic setup to make the page full-height and lock the main scrollbar */
         html, body {
             height: 100%;
-            overflow: hidden; /* This is the most important part */
             margin: 0;
-            font-family: sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            /* This is the crucial part that forces the scrollbar onto a child element */
+            overflow: hidden;
         }
 
-        /* * KEY CHANGE 2: Create a new scrolling container.
-         * This wrapper div takes up the full viewport height and is set
-         * to be the scrollable element. This is where the scrollbar
-         * will now live.
-        */
-        .page-wrapper {
-            height: 100vh;
-            overflow-y: scroll; /* Make this element scrollable */
-            -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
+        /* 1. Create a full-height flex container */
+        .page-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background-color: #f0f2f5;
         }
 
-        /* The Sticky Header */
-        .site-header {
-            position: sticky;
-            top: 0; /* Sticks to the top of its scrolling container (.page-wrapper) */
-            z-index: 1000;
-
-            /* Styling */
-            background-color: #c51a1a;
+        /* 2. Style the Header and Footer to be fixed in size */
+        .header, .footer {
+            flex-shrink: 0; /* Prevents these from shrinking */
+            background-color: #003366;
             color: white;
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            padding: 1rem;
+            text-align: center;
+            z-index: 10;
         }
 
-        /* Main content area styling */
-        .main-content {
-            padding: 2rem;
-            color: #333;
+        .header {
+             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
-        h2 {
-            margin-top: 4rem;
+        .footer {
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* 3. Make the main content area fill the remaining space and be scrollable */
+        .content-area {
+            flex-grow: 1; /* Takes up all available vertical space */
+            overflow-y: auto; /* Makes ONLY this element scrollable */
+            padding: 1.5rem;
+        }
+
+        .long-content-placeholder {
+            height: 2000px; /* Just to ensure the middle section is long enough to scroll */
+            border: 3px dashed #cccccc;
+            border-radius: 8px;
         }
     </style>
 </head>
 <body>
 
-    <div class="page-wrapper">
+    <div class="page-container">
 
-        <header class="site-header">
-            <h1>Sticky Header Inside a Scrolling Div</h1>
+        <header class="header">
+            <h2>Sticky Header</h2>
         </header>
 
-        <main class="main-content">
-            <h2>Content Section</h2>
-            <p>Scroll down this container. The header will stick to the top of this box, not the window.</p>
-            <p><strong>Most importantly:</strong> The `window` and `document` are not scrolling. Therefore, `document.documentElement.scrollTop` will always be 0.</p>
-
-            <h3>How to Verify:</h3>
-            <ol>
-                <li>Open the Developer Console (F12 or Ctrl+Shift+I).</li>
-                <li>Scroll up and down this page.</li>
-                <li>In the console, type `document.documentElement.scrollTop` or `window.pageYOffset` and press Enter.</li>
-                <li>Notice that the value is always `0`, even though you have scrolled.</li>
-            </ol>
-
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam in dui mauris. Vivamus hendrerit arcu sed erat molestie vehicula. Sed auctor neque eu tellus rhoncus ut eleifend nibh porttitor. Ut in nulla enim. Phasellus molestie magna non est bibendum non venenatis nisl tempor. Suspendisse dictum feugiat nisl ut dapibus. Mauris iaculis porttitor posuere. Praesent id metus massa, ut blandit odio. Proin quis tortor orci. Etiam at risus et justo dignissim congue. Donec congue lacinia dui, a porttitor lectus condimentum laoreet. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed, commodo vitae, ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac dui. Donec non enim in turpis pulvinar facilisis. Ut felis. Praesent dapibus, neque id cursus faucibus, tortor neque egestas augue, eu vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accansan porttitor, facilisis luctus, metus.</p>
-            <p>Sed egestas, ante et vulputate volutpat, eros pede semper est, vitae luctus metus libero eu augue. Morbi purus libero, faucibus adipiscing, commodo quis, gravida id, est. Sed lectus. Praesent elementum hendrerit tortor. Sed semper lorem at felis. Vestibulum volutpat, lacus a ultrices sagittis, mi neque euismod dui, eu pulvinar nunc sapien ornare nisl. Phasellus pede arcu, dapibus eu, fermentum et, dapibus sed, urna. Morbi interdum mollis sapien. Sed ac risus. Phasellus lacinia, magna a ullamcorper laoreet, lectus arcu pulvinar risus, vitae facilisis libero dolor a purus. Sed vel lacus. Mauris nibh felis, adipiscing varius, adipiscing in, lacinia vel, tellus. Suspendisse ac urna. Etiam pellentesque mauris ut lectus. Nunc tellus ante, mattis eget, gravida vitae, ultricies ac, leo. Integer leo pede, ornare a, lacinia eu, vulputate vel, nisl.</p>
+        <main class="content-area">
+            <h3>This is the only scrollable area.</h3>
+            <p>The header above and the footer below will remain fixed in place while you scroll this middle section.</p>
+            <div class="long-content-placeholder"></div>
         </main>
+
+        <footer class="footer">
+            <p>Sticky Footer</p>
+        </footer>
 
     </div>
 
