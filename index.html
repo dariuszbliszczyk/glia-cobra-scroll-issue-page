@@ -1,23 +1,83 @@
 <!DOCTYPE html>
-<html lang="en" style="height: 100%; overflow: hidden;">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Body Scroll Example (Corrected)</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scrolling Container Issue</title>
+    <style>
+        /* * KEY CHANGE 1: Lock the main document body.
+         * By setting overflow to hidden and height to 100%, we prevent the
+         * browser's main scrollbar from ever appearing. The page itself
+         * can no longer be scrolled.
+        */
+        html, body {
+            height: 100%;
+            overflow: hidden; /* This is the most important part */
+            margin: 0;
+            font-family: sans-serif;
+        }
+
+        /* * KEY CHANGE 2: Create a new scrolling container.
+         * This wrapper div takes up the full viewport height and is set
+         * to be the scrollable element. This is where the scrollbar
+         * will now live.
+        */
+        .page-wrapper {
+            height: 100vh;
+            overflow-y: scroll; /* Make this element scrollable */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
+        }
+
+        /* The Sticky Header */
+        .site-header {
+            position: sticky;
+            top: 0; /* Sticks to the top of its scrolling container (.page-wrapper) */
+            z-index: 1000;
+
+            /* Styling */
+            background-color: #c51a1a;
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* Main content area styling */
+        .main-content {
+            padding: 2rem;
+            color: #333;
+        }
+
+        h2 {
+            margin-top: 4rem;
+        }
+    </style>
 </head>
+<body>
 
-<body style="height: 100%; overflow: auto; margin: 0; font-family: sans-serif; line-height: 1.6;">
+    <div class="page-wrapper">
 
-  <div style="padding: 2em;">
-    <h1>Scroll Down to Check the Console</h1>
-    <p>This page has been corrected. It now correctly makes the <strong>&lt;body&gt;</strong> element the scroll container.</p>
-    <p>As you scroll, open the developer console (F12) to observe the values.</p>
-    <p>You will see that <code>document.body.scrollTop</code> changes, but <code>document.documentElement.scrollTop</code> remains <strong>0</strong>.</p>
-  </div>
+        <header class="site-header">
+            <h1>Sticky Header Inside a Scrolling Div</h1>
+        </header>
 
-  <div style="height: 2500px; background-color: #f0f8ff; border-top: 2px dashed #007bff;">
-    <p style="padding-top: 100px; text-align: center; font-size: 2em; color: #007bff;">
-      This is a tall div to create scroll space.
-    </p>
-  </div>
+        <main class="main-content">
+            <h2>Content Section</h2>
+            <p>Scroll down this container. The header will stick to the top of this box, not the window.</p>
+            <p><strong>Most importantly:</strong> The `window` and `document` are not scrolling. Therefore, `document.documentElement.scrollTop` will always be 0.</p>
+
+            <h3>How to Verify:</h3>
+            <ol>
+                <li>Open the Developer Console (F12 or Ctrl+Shift+I).</li>
+                <li>Scroll up and down this page.</li>
+                <li>In the console, type `document.documentElement.scrollTop` or `window.pageYOffset` and press Enter.</li>
+                <li>Notice that the value is always `0`, even though you have scrolled.</li>
+            </ol>
+
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam in dui mauris. Vivamus hendrerit arcu sed erat molestie vehicula. Sed auctor neque eu tellus rhoncus ut eleifend nibh porttitor. Ut in nulla enim. Phasellus molestie magna non est bibendum non venenatis nisl tempor. Suspendisse dictum feugiat nisl ut dapibus. Mauris iaculis porttitor posuere. Praesent id metus massa, ut blandit odio. Proin quis tortor orci. Etiam at risus et justo dignissim congue. Donec congue lacinia dui, a porttitor lectus condimentum laoreet. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed, commodo vitae, ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac dui. Donec non enim in turpis pulvinar facilisis. Ut felis. Praesent dapibus, neque id cursus faucibus, tortor neque egestas augue, eu vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accansan porttitor, facilisis luctus, metus.</p>
+            <p>Sed egestas, ante et vulputate volutpat, eros pede semper est, vitae luctus metus libero eu augue. Morbi purus libero, faucibus adipiscing, commodo quis, gravida id, est. Sed lectus. Praesent elementum hendrerit tortor. Sed semper lorem at felis. Vestibulum volutpat, lacus a ultrices sagittis, mi neque euismod dui, eu pulvinar nunc sapien ornare nisl. Phasellus pede arcu, dapibus eu, fermentum et, dapibus sed, urna. Morbi interdum mollis sapien. Sed ac risus. Phasellus lacinia, magna a ullamcorper laoreet, lectus arcu pulvinar risus, vitae facilisis libero dolor a purus. Sed vel lacus. Mauris nibh felis, adipiscing varius, adipiscing in, lacinia vel, tellus. Suspendisse ac urna. Etiam pellentesque mauris ut lectus. Nunc tellus ante, mattis eget, gravida vitae, ultricies ac, leo. Integer leo pede, ornare a, lacinia eu, vulputate vel, nisl.</p>
+        </main>
+
+    </div>
+
 </body>
 </html>
