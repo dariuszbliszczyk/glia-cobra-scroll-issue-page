@@ -1,105 +1,96 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Final Proof: Scroll Hijacking with Detailed Content</title>
+    <title>Test Case: Shadow DOM with Sticky Layout</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body, html {
+        /* Basic setup to lock the main page and prevent its scrollbar */
+        html, body {
             height: 100%;
             margin: 0;
-            overflow: hidden; /* The main document does NOT have a real scrollbar */
-            font-family: sans-serif;
-            line-height: 1.6;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
-        .page-container {
-            display: flex;
-            flex-direction: column;
+
+        /* The custom element that will host the shadow DOM needs to fill the whole page */
+        scroll-component {
+            display: block;
             height: 100%;
-        }
-        .header, .footer {
-            flex-shrink: 0;
-            background: #2c3e50;
-            color: white;
-            padding: 1rem;
-            text-align: center;
-        }
-        .content-area {
-            flex-grow: 1;
-            overflow: hidden; /* The visual container also does not scroll */
-            background-color: #f0f2f5;
-        }
-        .content-wrapper {
-            /* This is the element that is moved vertically by the script */
-            transition: transform 0.1s ease-out;
-        }
-        .content-padding {
-            padding: 1.5rem 3rem;
-        }
-        h3 {
-            margin-top: 2.5rem;
-            border-bottom: 2px solid #ccc;
-            padding-bottom: 0.5rem;
+            width: 100%;
         }
     </style>
 </head>
 <body>
-    <div class="page-container">
-        <header class="header"><h1>Sticky Header</h1></header>
-        <main class="content-area">
-            <div class="content-wrapper">
-                <div class="content-padding">
-                    <h2>This content moves using CSS Transform.</h2>
-                    <p>A separate, fake 'scroll' event is fired on the document.</p>
 
-                    <h3>Section A: Introduction</h3>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur et est sed felis feugiat maximus. Duis a enim ac diam tempus oportere. Pellentesque et felis ut nisi pharetra maximus. Sed sit amet rhoncus est, et accumsan ex. Proin et lorem sit amet ante convallis bibendum.</p>
-                    <p>Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Donec a lorem eget massa lobortis dictum. In hac habitasse platea dictumst. Vivamus vel est ut turpis consequat porta. Integer eu felis et massa convallis commodo. Nam nec ante non lectus feugiat aliquet.</p>
-
-                    <h3>Section B: Core Concepts</h3>
-                    <p>Nullam quis risus eget urna mollis ornare vel eu leo. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Cras mattis consectetur purus sit amet fermentum. Donec ullamcorper nulla non metus auctor fringilla. Maecenas sed diam eget risus varius blandit sit amet non magna.</p>
-                    <p>Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Etiam porta sem malesuada magna mollis euismod. Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor. Curabitur blandit tempus porttitor. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit.</p>
-
-                    <h3>Section C: Further Details</h3>
-                    <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.</p>
-                    <p>Maecenas faucibus mollis interdum. Nulla vitae elit libero, a pharetra augue. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Aenean lacinia bibendum nulla sed consectetur. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent commodo cursus magna, vel scelerisque nisl consectetur et.</p>
-
-                    <h3>Section D: Implementation</h3>
-                    <p>Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Donec ullamcorper nulla non metus auctor fringilla. Cras mattis consectetur purus sit amet fermentum. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum.</p>
-                    <p>Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Sed posuere consectetur est at lobortis. Vestibulum id ligula porta felis euismod semper. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
-
-                    <h3>Section E: Conclusion</h3>
-                    <p>Curabitur blandit tempus porttitor. Maecenas sed diam eget risus varius blandit sit amet non magna. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Donec sed odio dui. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-                    <p>Nulla vitae elit libero, a pharetra augue. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Maecenas faucibus mollis interdum. Vestibulum id ligula porta felis euismod semper.</p>
-                </div>
-            </div>
-        </main>
-        <footer class="footer"><p>Sticky Footer</p></footer>
-    </div>
+    <scroll-component></scroll-component>
 
     <script>
-        const contentArea = document.querySelector('.content-area');
-        const contentWrapper = document.querySelector('.content-wrapper');
-        let currentY = 0;
+        // --- This script defines the custom element that creates the Shadow DOM ---
 
-        contentArea.addEventListener('wheel', (event) => {
-            event.preventDefault();
+        class ScrollComponent extends HTMLElement {
+            constructor() {
+                super();
 
-            // Part 1: Visually move the content
-            currentY -= event.deltaY;
-            const maxScroll = -(contentWrapper.offsetHeight - contentArea.clientHeight);
-            if (currentY > 0) currentY = 0;
-            if (currentY < maxScroll) currentY = maxScroll;
-            contentWrapper.style.transform = `translateY(${currentY}px)`;
+                // 1. Create a shadow root. This isolates the component's internal DOM.
+                const shadow = this.attachShadow({ mode: 'open' });
 
-            // Part 2: Fire a "proxy" scroll event on the document that your script can detect
-            window.scrollTo(0, 0);
+                // 2. Define the styles for the *internal* layout and scrolling container.
+                const style = document.createElement('style');
+                style.textContent = `
+                    .page-container {
+                        display: flex;
+                        flex-direction: column;
+                        height: 100%;
+                    }
+                    .header, .footer {
+                        flex-shrink: 0;
+                        background-color: #003366;
+                        color: white;
+                        padding: 1rem;
+                        text-align: center;
+                        z-index: 10;
+                    }
+                    /* This is the element that gets the scrollbar */
+                    .content-area {
+                        flex-grow: 1;
+                        overflow-y: auto;
+                        padding: 1.5rem;
+                    }
+                `;
 
-        }, { passive: false });
+                // 3. Create the internal HTML structure.
+                const container = document.createElement('div');
+                container.setAttribute('class', 'page-container');
+                container.innerHTML = `
+                    <header class="header">
+                        <h2>Sticky Header</h2>
+                    </header>
+                    <main class="content-area">
+                        <h3>This content is inside a Shadow DOM.</h3>
+                        <p>The scrollbar you see on the right belongs to this middle section, which is isolated from the main page.</p>
+                        <p>A 'scroll' listener on the main document will NOT fire.</p>
+                        <p>${'This is a long line of text to ensure there is plenty of content to scroll through. '.repeat(500)}</p>
+                    </main>
+                    <footer class="footer">
+                        <p>Sticky Footer</p>
+                    </footer>
+                `;
 
-        // This listener simulates your script, proving the event fires on the document with scrollTop = 0
-        document.addEventListener('scroll', (event) => {
-            const scrollTop = event.target.documentElement ? event.target.documentElement.scrollTop : 0;
-            console.log(`Document 'scroll' event fired. scrollTop is: ${scrollTop}`);
-        });
+                // 4. Attach the styles and HTML to the shadow root.
+                shadow.appendChild(style);
+                shadow.appendChild(container);
+            }
+        }
+
+        // 5. Register the new custom element.
+        customElements.define('scroll-component', ScrollComponent);
+
+        // This listener on the main document will FAIL to detect the scroll.
+        document.addEventListener('scroll', () => {
+            console.log("❌ FAILED: Scroll event detected on the main document.");
+        }, true);
     </script>
+
 </body>
 </html>
